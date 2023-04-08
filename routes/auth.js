@@ -8,10 +8,10 @@ const router = express.Router();
 
 
 router.post('/signup', [
-    body('firstname').isLength({min:4})
-        .withMessage("Firstname should be at least 4 characters."),
-    body('lastname').isLength({min:4})
-        .withMessage("Lastname should be at least 4 characters."),
+    body('firstname').isLength({min:2})
+        .withMessage("Firstname should be at least 2 characters."),
+    body('lastname').isLength({min:2})
+        .withMessage("Lastname should be at least 2 characters."),
     body('email').isEmail()
         .withMessage("E-mail must be valid.")
         .custom( (value, {req}) => {
@@ -62,6 +62,23 @@ router.post('/login', [
             return true;
         })
 ] , authController.login);
+
+router.get('/verify-email/:token', async (req, res, next) => {
+    try {
+      const user = await User.findOne({ emailVerificationToken: req.params.token });
+      if (!user) {
+        return res.status(404).json({ message: 'Invalid verification link.' });
+      }
+      user.emailVerificationToken = undefined;
+      user.isVerified = true;
+      await user.save();
+      res.status(200).json({ message: 'Your email address has been verified.' });
+    } catch (error) {
+      next(error);
+    }
+});
+
+router.get('/forgot-password')
 
 router.get('/checkemail/:email', authController.checkEmail);
 

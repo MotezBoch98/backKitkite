@@ -1,6 +1,8 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator/check');
+const crypto = require('crypto');
+const emailSender = require('../util/emailVerification')
 
 // signup users
 exports.signup = async (req,res,next) => {
@@ -10,18 +12,22 @@ exports.signup = async (req,res,next) => {
             .json({message: "Validation Errors!", data: errors.array()});
     }
     try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 12);    
+        const hashedPassword = await bcrypt.hash(req.body.password, 12);
+        const emailVerificationToken = crypto.randomBytes(20).toString('hex');    
         const user = new User({
             firstname: req.body.firstname,
             lastname: req.body.lastname,
             email: req.body.email,
-            password: hashedPassword    
+            password: hashedPassword,
+            isVerified: false,
+            emailVerificationToken: emailVerificationToken    
         });
 
         const newUser = await user.save();
+        await emailSender.sendVerificationEmail(newUser);
         const token = newUser.generateAuthToken();
         res.status(201).json({
-            message: 'User created successfully',
+            message: 'User created successfully. Please check your email to verify your account.',
             user: newUser, 
             token: token
         });
@@ -40,6 +46,9 @@ exports.login = async (req,res,next) => {
     }
     try {
         const user = await User.findOne({email: req.body.email});
+        if (!user.isVerified) {
+            return res.status(403).json({ message: "Not Verified User Yet!"})
+        }
         const token = user.generateAuthToken();  // Generate JWT
         res.status(200).json({token: token, user:user});
     } catch (err) { 
@@ -75,6 +84,10 @@ exports.socialLogin = async (req,res,next) => {
     } catch (err) { 
         next(err) 
     };
+}
+
+exports.forgotPassword = async (req,res) => {
+    const errors = validationResult(req);
 }
 
 exports.checkEmail = async (req,res,next) => {

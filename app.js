@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
@@ -10,7 +11,7 @@ const path = require('path');
 
 
 // connect to DB
-const url = `mongodb://localhost/kitkiteapp`;
+const url = process.env.DATABASE_URL;
 const options = {
   useNewUrlParser: true,
   useUnifiedTopology: true

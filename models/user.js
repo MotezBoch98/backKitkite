@@ -17,21 +17,25 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        minlength:6
+        minlength: 6
     },
     imageUrl: {
         type: String,
         default: undefined
     },
-    resetToken: {
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationToken: {
         type: String
     }
-});
+}, { timestamps: true });
 
-userSchema.methods.generateAuthToken = function() {
+userSchema.methods.generateAuthToken = function () {
     return jwt.sign({
         userId: this._id,
         email: this.email
-    }, process.env.JWT_KEY || 'mysecretkey', {expiresIn: '2d'});
+    }, process.env.JWT_KEY, { expiresIn: '2d' });
 }
-module.exports = mongoose.model('User' , userSchema);
+module.exports = mongoose.model('User', userSchema);
