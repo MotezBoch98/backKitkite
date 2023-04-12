@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const app = express();
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth');
+const schoolRoutes = require('./routes/school');
 // const postRoutes = require('./routes/post');
 // const commentRoutes = require('./routes/comment');
 const userRoutes = require('./routes/user');
@@ -45,6 +46,7 @@ app.use('/api/auth' , authRoutes);
 // app.use('/api/posts' , postRoutes);
 // app.use('/api/comments' , commentRoutes);
 app.use('/api/users' , userRoutes);
+app.use('/api/school',schoolRoutes);
 
 // ERROR HANDLING MIDDLEWARE
 app.use( (error,req,res,next) => {

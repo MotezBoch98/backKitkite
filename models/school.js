@@ -19,8 +19,12 @@ const schoolSchema = new mongoose.Schema({
         type: String,
         default: undefined
     },
-    locationUrl: {
-        type: String
+    location: {
+        type: Object,
+        default: {
+            longitude: 0,
+            latitude: 0
+        }
     },
     isVerified: {
         type: Boolean,
