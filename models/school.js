@@ -19,10 +19,17 @@ const schoolSchema = new mongoose.Schema({
         type: String,
         default: undefined
     },
-    resetToken: {
+    locationUrl: {
+        type: String
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationToken: {
         type: String
     }
-});
+}, { timestamps: true });
 
 schoolSchema.methods.generateAuthToken = function() {
     return jwt.sign({
