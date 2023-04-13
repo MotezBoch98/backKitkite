@@ -4,10 +4,10 @@ const mongoose = require('mongoose');
 const app = express();
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth');
-const schoolRoutes = require('./routes/school');
-// const postRoutes = require('./routes/post');
-// const commentRoutes = require('./routes/comment');
 const userRoutes = require('./routes/user');
+const schoolRoutes = require('./routes/school');
+const postRoutes = require('./routes/post');
+const commentRoutes = require('./routes/comment');
 const path = require('path');
 
 
@@ -43,8 +43,8 @@ app.use((req, res, next) => {
 
 // API ROTUES
 app.use('/api/auth' , authRoutes);
-// app.use('/api/posts' , postRoutes);
-// app.use('/api/comments' , commentRoutes);
+app.use('/api/posts' , postRoutes);
+app.use('/api/comments' , commentRoutes);
 app.use('/api/users' , userRoutes);
 app.use('/api/school',schoolRoutes);
 
@@ -60,4 +60,4 @@ app.use( (error,req,res,next) => {
 // listening to port
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => console.log(`listening to port ${port}`));
-require('./util/socket-io').init(server);
+// require('./util/socket-io').init(server);
