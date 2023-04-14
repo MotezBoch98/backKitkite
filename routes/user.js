@@ -15,7 +15,6 @@ router.get('/:id' , [isAuth,validObjectId] ,userController.getUser);
 // router.get('/:id/posts' , [isAuth,validObjectId] ,userController.getUserPosts);
 
 //  change user image
-router.post('/image' , 
-    [isAuth, multer.single('image')] ,
-    userController.changeUserImage);
+router.post('/image', [isAuth, multer.single('image')], userController.changeUserImage);
+
 module.exports = router;

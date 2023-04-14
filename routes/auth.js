@@ -98,33 +98,30 @@ router.post('/login', [
         })
 ], authController.login);
 
-router.get('/verify-email/:token', async (req, res, next) => {
-    try {
-        let user = await User.findOne({ emailVerificationToken: req.params.token });
-        let isSchool = false;
-        if (!user) {
-            user = await School.findOne({ emailVerificationToken: req.params.token });
-            isSchool = true;
-            if (!user) {
-                return res.status(404).json({ message: 'Invalid verification link.' });
-            }
-        }
+router.get('/verify-email/:token', authController.verifyEmail);
 
-        user.emailVerificationToken = undefined;
-        user.isVerified = true;
-        await user.save();
-        let message = 'Your email address has been verified.';
-        if (isSchool) {
-            message = 'Your school email address has been verified.';
-        }
-        res.status(200).json({ message });
-    } catch (error) {
-        next(error);
-    }
-});
+// Forgot password route
+router.post('/forgot-password', [
+    body('email').isEmail().withMessage('Invalid email address!').custom((value, { req }) => {
+        return User.findOne({ email: value })
+            .then(user => {
+                if (!user) {
+                    return School.findOne({ email: value })
+                        .then(school => {
+                            if (!school) {
+                                return Promise.reject("E-mail or Password not correct!");
+                            }
+                        })
+                }
+            })
+    })
+], authController.forgotPassword);
 
+// Reset password route
+router.post('/reset-password/:token', [
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long!')
+], authController.resetPassword);
 
-router.get('/forgot-password')
 
 router.get('/checkemail/:email', authController.checkEmail);
 

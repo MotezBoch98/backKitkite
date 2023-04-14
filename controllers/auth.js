@@ -130,6 +130,88 @@ exports.socialLogin = async (req, res, next) => {
     };
 }
 
+exports.verifyEmail = async (req, res, next) => {
+    try {
+        let user = await User.findOne({ emailVerificationToken: req.params.token });
+        let isSchool = false;
+        if (!user) {
+            user = await School.findOne({ emailVerificationToken: req.params.token });
+            isSchool = true;
+            if (!user) {
+                return res.status(404).json({ message: 'Invalid verification link.' });
+            }
+        }
+
+        user.emailVerificationToken = undefined;
+        user.isVerified = true;
+        await user.save();
+        let message = 'Your email address has been verified.';
+        if (isSchool) {
+            message = 'Your school email address has been verified.';
+        }
+        res.status(200).json({ message });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+exports.forgotPassword = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({ message: 'Validation Errors!', data: errors.array() });
+    }
+
+    try {
+        const email = req.body.email;
+        const user = await User.findOne({ email });
+        if (!user) {
+            const school = await School.findOne({ email });
+            if (!school) {
+                return res.status(404).json({ message: 'User with this email address does not exist!' });
+            }
+        }
+
+        const resetToken = crypto.randomBytes(20).toString('hex');
+        const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+        user.resetToken = resetToken;
+        user.resetTokenExpiry = resetTokenExpiry;
+        await user.save();
+
+        await emailSender.sendResetPasswordEmail(user);
+
+        res.status(200).json({ message: 'A reset password link has been sent to your email address!' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.resetPassword = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({ message: 'Validation Errors!', data: errors.array() });
+    }
+
+    const password = req.body.password;
+    const token = req.params.token;
+
+    try {
+        const user = await User.findOne({ resetToken: token, resetTokenExpiry: { $gt: Date.now() } });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired token!' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+        user.password = hashedPassword;
+        user.resetToken = undefined;
+        user.resetTokenExpiry = undefined;
+        await user.save();
+
+        res.status(200).json({ message: 'Your password has been successfully updated!' });
+    } catch (error) {
+        next(error);
+    }
+};
 
 
 exports.checkEmail = async (req, res, next) => {
