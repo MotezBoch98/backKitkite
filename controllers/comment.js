@@ -1,5 +1,6 @@
 const Post = require('../models/post');
 const resourceNotFound = require('../util/resourceNotFound');
+const socket_io = require('../util/socket-io');
 
 // Post new comment
 exports.postComment = async (req,res,next) => {     // body(postId, content)
@@ -16,6 +17,9 @@ exports.postComment = async (req,res,next) => {     // body(postId, content)
 
         let newPost = await post.save();
         newPost = await Post.findById(newPost._id).populate('user comments.user', '-password');
+
+        // using web socket
+        socket_io.getIO().emit('posts', {action: 'addComment', post:newPost});        
 
         res.status(201).json({message: "Comment Created Successfully" , post: newPost});
     } catch (err) {
@@ -48,6 +52,8 @@ exports.editComment = async (req,res,next) => {     // params(id) - body(postId,
         let editedPost = await post.save();
         editedPost = await Post.findById(editedPost._id).populate('user comments.user', '-password');
 
+        // using web socket
+        socket_io.getIO().emit('posts', {action: 'editComment', post:editedPost});
 
         res.status(200).json({message: "Comment Updated Successfully", post: editedPost});
 
@@ -82,7 +88,8 @@ exports.deleteComment = async (req,res,next) => {     // params(id) - body(postI
         let newPost = await post.save();
         newPost = await Post.findById(newPost._id).populate('user comments.user', '-password');
 
-
+        // using web socket
+        socket_io.getIO().emit('posts', {action: 'deleteComment', post:newPost});
 
         res.status(200).json({message: "Comment deleted successfully", post: newPost});
 

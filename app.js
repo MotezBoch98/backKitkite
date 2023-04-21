@@ -60,4 +60,4 @@ app.use( (error,req,res,next) => {
 // listening to port
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => console.log(`listening to port ${port}`));
-// require('./util/socket-io').init(server);
+require('./util/socket-io').init(server);

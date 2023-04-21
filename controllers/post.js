@@ -2,6 +2,7 @@ const Post = require('../models/post');
 const User = require('../models/user');
 const resourceNotFound = require('../util/resourceNotFound');
 const clearImage = require('../util/clear-image');
+const socket_io = require('../util/socket-io');
 
 exports.addPost = async (req,res,next) => {     // body(content, imageUrl)
     
@@ -35,6 +36,9 @@ exports.addPost = async (req,res,next) => {     // body(content, imageUrl)
     try {
         let newPost = await post.save();
         newPost = await Post.findById(newPost._id).populate('user', '-password');
+       
+        // using web socket
+        socket_io.getIO().emit('posts', {action: 'create', post:newPost});    
         
         res.status(201).json({message: "Post Created Successfully", post: newPost});
         
@@ -63,6 +67,9 @@ exports.deletePost = async (req,res,next) => {      // params(id)
             clearImage(post.imageUrl);
         }
         const deletedPost = await Post.findByIdAndRemove(req.params.id).populate('user', '-password');
+
+        // using web socket
+        socket_io.getIO().emit('posts', {action: 'delete', post:deletedPost});         
 
         res.status(200).json({message: "Post Deleted Successfully",post: deletedPost});
     } catch (err) {
@@ -107,6 +114,9 @@ exports.updatePost = async (req,res,next) => {      // params(id) - req.body
 
         let updatedPost = await post.save();
         updatedPost = await Post.findById(updatedPost._id).populate('user comments.user', '-password');
+
+        // using web socket
+        socket_io.getIO().emit('posts', {action: 'update', post:updatedPost});         
 
         res.status(200).json({message: "Post Updated Successfully", post: updatedPost});    
     } catch (err) {
@@ -159,6 +169,8 @@ exports.postLike = async (req,res,next) => {      // body(postId)
         let likedPost = await post.save();
         likedPost = await Post.findById(likedPost._id).populate('user comments.user', '-password');
 
+        // using web socket
+        socket_io.getIO().emit('posts', {action: 'addLike', post:likedPost});
 
         res.status(200).json({message: "Like Created Successfully", post: likedPost});
     } catch (err) {
@@ -190,7 +202,9 @@ exports.deleteLike = async (req,res,next) => {      // params(id) - body(postId)
         let likedPost = await post.save();
         likedPost = await Post.findById(likedPost._id).populate('user comments.user', '-password');
 
-
+        // using web socket
+        socket_io.getIO().emit('posts', {action: 'deleteLike', post:likedPost});
+        
         res.status(200).json({message: "Like Deleted Successfully", post: likedPost});
     } catch (err) {
         next(err);
