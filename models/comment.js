@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 module.exports = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
